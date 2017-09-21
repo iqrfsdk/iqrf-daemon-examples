@@ -1,9 +1,13 @@
-UP board - Ubuntu 16.04 
+# UP board - Ubuntu 16.04
 
+<!--- nodejs, npm and nodered  -->
+```Bash
 sudo apt-get install nodejs-legacy
 sudo npm install -g --unsafe-perm node-red node-red-admin
 sudo ufw allow 1880
+```
 
+<!--- Create service file like this  -->
 sudo cat /etc/systemd/system/node-red.service
 
 [Unit]
@@ -27,9 +31,15 @@ Group=ubuntu
 [Install]
 WantedBy=multi-user.target
 
+<!--- Enable, start and status node-red service  -->
+```Bash
 sudo systemctl enable node-red
 sudo systemctl start node-red
 sudo systemctl status node-red
+```
 
+<!--- MQ channel support  -->
+```Bash
 sudo npm install -g --unsafe-perm node-red-contrib-ipc
 sudo systemctl restart node-red
+```
