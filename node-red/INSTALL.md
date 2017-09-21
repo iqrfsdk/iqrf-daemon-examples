@@ -7,7 +7,7 @@ sudo npm install -g --unsafe-perm node-red node-red-admin
 sudo ufw allow 1880
 ```
 
-## Create service file like this
+## Create service file (adjust for your user)
 ```Bash
 sudo cat /etc/systemd/system/node-red.service
 
@@ -16,7 +16,7 @@ Description=Node-RED
 After=syslog.target network.target
 
 [Service]
-ExecStart=/usr/local/bin/node-red-pi --max-old-space-size=128 -v
+ExecStart=/usr/local/bin/node-red --max-old-space-size=128 -v
 Restart=on-failure
 KillSignal=SIGINT
 
@@ -24,7 +24,7 @@ KillSignal=SIGINT
 SyslogIdentifier=node-red
 StandardOutput=syslog
 
-# non-root user to run as
+# non-root user to run as (your user)
 WorkingDirectory=/home/ubuntu/
 User=ubuntu
 Group=ubuntu
