@@ -1,5 +1,5 @@
 # #############################################################################
-# Author: 2017                                                                #  
+# Author: 2017                                                                #
 #         Rostislav Spinar <rostislav.spinar@iqrf.com>                        #
 #         Roman Ondracek <roman.ondracek@iqrf.com>                            #
 #         IQRF Tech s.r.o.                                                    #
@@ -30,7 +30,6 @@ ARGS.add_argument("-ts", "--topic_sub", action="store", dest="topic_sub", defaul
 ARGS.add_argument("-u", "--user", action="store", dest="mqtt_user", default=None, type=str, help="MQTT user")
 ARGS.add_argument("-P", "--password", action="store", dest="mqtt_pass", default=None, type=str, help="MQTT password")
 
-
 def on_connect(client, userdata, flags, rc):
     print('CONNACK received with code %d.' % (rc))
 
@@ -44,7 +43,17 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 
 def on_message(client, userdata, msg):
+    global receive_flag, response_err, response_ok
+
     print(msg.topic + ' ' + str(msg.qos) + ' ' + str(msg.payload))
+    response = json.loads(str(msg.payload, 'utf-8'))
+
+    if response['status'] != 'STATUS_NO_ERROR':
+        response_err += 1
+    else:
+        response_ok += 1
+
+    receive_flag = True
 
 
 def on_log(mqttc, userdata, level, string):
@@ -75,12 +84,15 @@ def create_dpa_json(msg_id, dpa_frame):
 
 
 def main():
-    # IQRF
-    # default hwpid
+    # peripheral DPA
+    pnum_ledr = 0x06
+    pcmd_pulse = 0x03
     hwpid = 0xffff
+    
     # default DPA timeout (in miliseconds)
     timeout = 1000
     args = ARGS.parse_args()
+    
     # MQTT
     host = args.mqtt_host
     port = args.mqtt_port
@@ -92,6 +104,11 @@ def main():
     topic_pub = args.topic_pub
     topic_sub = args.topic_sub
 
+    global receive_flag, response_err, response_ok
+    receive_flag = False
+    response_err = 0
+    response_ok = 0
+    
     if debug:
         print("MQTT host: " + host + ":" + str(port))
         if username is not None and password is not None:
@@ -128,20 +145,41 @@ def main():
     client.loop_start()
     # client.loop_stop()
 
-    # dpa frame
-    dpa_frame = create_dpa_frame(0x0f, 0x06, 0x03, hwpid)
+    node_address = 0
 
     while True:
-        # json dpa
+        
+        # timestamp as id
         msg_id = str(time.time())
+
+        # address handling
+        if node_address < 10:
+            node_address += 1
+        else:
+            client.disconnect()
+            break
+
+        # dpa frame
+        dpa_frame = create_dpa_frame(node_address, pnum_ledr, pcmd_pulse, hwpid)
+
+        # json packet
         json_dpa = create_dpa_json(msg_id, dpa_frame)
 
         # publish
         (rc, mid) = client.publish(topic_pub, json_dpa, qos=1)
 
-        # sleep
-        time.sleep(10)
+        # waiting for message reception
+        counter = 0
+        while receive_flag == False:
+            # pause 1/1000 second
+            time.sleep(.001) 
+            counter += 1
 
+        print('Waited for message reception to occur: %d ms' %(counter))
+        print('Number of responses received correctly: %d' %(response_ok))
+        print('Number of responses failed: %d' %(response_err))
+        
+        receive_flag = False
 
 if __name__ == "__main__":
     main()
