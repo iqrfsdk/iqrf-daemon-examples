@@ -1,49 +1,55 @@
-# Node-RED
+# Demo Apps
 
-Help with simple examples very much appreciated!
+## Get ready for the Docker ride
 
-## nodejs, npm and nodered on ubuntu 16.04
+Follow our [guide](https://github.com/iqrfsdk/iqrf-daemon/blob/master/docker/README.md)
+
+## Node-RED app
+
+Custom flow has been developed by our partner [JoTio](http://jotio.cz/).
+
+### Build it for the UP board
+
 ```Bash
-sudo apt-get install nodejs-legacy
-sudo npm install -g --unsafe-perm node-red node-red-admin
-sudo ufw allow 1880
+git clone https://github.com/iqrfsdk/iot-starter-kit.git
+cd apps/nodered
+docker build -f Dockerfile.amd64 -t iot-iqrf-nodered-app .
 ```
 
-## Create service file (adjust for your user)
+### Build it for the RPI board
+
 ```Bash
-sudo cat /etc/systemd/system/node-red.service
-
-[Unit]
-Description=Node-RED
-After=syslog.target network.target
-
-[Service]
-ExecStart=/usr/local/bin/node-red --max-old-space-size=128 -v
-Restart=on-failure
-KillSignal=SIGINT
-
-# log output to syslog as 'node-red'
-SyslogIdentifier=node-red
-StandardOutput=syslog
-
-# non-root user to run as (your user)
-WorkingDirectory=/home/ubuntu/
-User=ubuntu
-Group=ubuntu
-
-[Install]
-WantedBy=multi-user.target
+git clone https://github.com/iqrfsdk/iot-starter-kit.git
+cd apps/nodered
+docker build -f Dockerfile.rpi -t iot-iqrf-nodered-app .
 ```
 
-## Enable, start and status node-red service
+### Run it
+
 ```Bash
-sudo systemctl enable node-red
-sudo systemctl start node-red
-sudo systemctl status node-red
+docker container run -d -p 1880:1880 --name iot-iqrf-nodered-app --net bridge01 --ip 10.1.1.3 \ 
+--restart=always iot-iqrf-nodered-app
 ```
 
-## MQ channel support
+### Check that all is good
+
+#### See all containers running
+
 ```Bash
-sudo npm install -g --unsafe-perm node-red-contrib-ipc
-sudo systemctl restart node-red
+ubilinux@ubilinux:~/iot-starter-kit/apps/nodered$ docker container ls
+CONTAINER ID        IMAGE                  COMMAND                  CREATED             STATUS              PORTS                                            NAMES
+4a9cb85e0819        iot-iqrf-nodered-app   "npm start -- --us..."   22 minutes ago      Up 22 minutes       0.0.0.0:1880->1880/tcp                           iot-iqrf-nodered-app
+91bef707acc9        iqrf-daemon            "/usr/bin/entry.sh..."   7 hours ago         Up 7 hours                                                           iqrf1daemon
+01eda0695d7f        eclipse-mosquitto      "/docker-entrypoin..."   7 hours ago         Up 7 hours          0.0.0.0:1883->1883/tcp, 0.0.0.0:9001->9001/tcp   mqtt1broker
 ```
+
+#### See the dashboard
+
+http://your-host-ip-address:1880/ui
+
+![IQRF Dashboard](https://github.com/iqrfsdk/iot-starter-kit/blob/master/apps/nodered/ui/ui.png "IQRF Dashboard")
+
+### Feedback
+
+Please, let us know if we miss anything!
+Enjoy & spread the joy!
