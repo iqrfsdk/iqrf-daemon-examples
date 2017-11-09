@@ -6,21 +6,21 @@ Follow our [guide](https://github.com/iqrfsdk/iqrf-daemon/blob/master/docker/REA
 
 ## Node-RED app
 
-Custom flow has been developed by our partner [JoTio](http://jotio.cz/).
+Custom flow has been developed by our partner [JoTioTech](http://jotio.cz/).
 
 ### Build it for the UP board
 
 ```Bash
-git clone https://github.com/iqrfsdk/iot-starter-kit.git
-cd apps/nodered
+git clone https://github.com/iqrfsdk/iqrf-daemon-examples.git
+cd node-red
 docker build -f Dockerfile.amd64 -t iot-iqrf-nodered-app .
 ```
 
 ### Build it for the RPI board
 
 ```Bash
-git clone https://github.com/iqrfsdk/iot-starter-kit.git
-cd apps/nodered
+git clone https://github.com/iqrfsdk/iqrf-daemon-examples.git
+cd node-red
 docker build -f Dockerfile.rpi -t iot-iqrf-nodered-app .
 ```
 
@@ -36,7 +36,7 @@ docker container run -d -p 1880:1880 --name iot-iqrf-nodered-app --net bridge01 
 #### See all containers running
 
 ```Bash
-ubilinux@ubilinux:~/iot-starter-kit/apps/nodered$ docker container ls
+ubilinux@ubilinux:~/iqrf-daemon-examples/node-red$ docker container ls
 CONTAINER ID        IMAGE                  COMMAND                  CREATED             STATUS              PORTS                                            NAMES
 4a9cb85e0819        iot-iqrf-nodered-app   "npm start -- --us..."   22 minutes ago      Up 22 minutes       0.0.0.0:1880->1880/tcp                           iot-iqrf-nodered-app
 91bef707acc9        iqrf-daemon            "/usr/bin/entry.sh..."   7 hours ago         Up 7 hours                                                           iqrf1daemon
@@ -47,7 +47,7 @@ CONTAINER ID        IMAGE                  COMMAND                  CREATED     
 
 http://your-host-ip-address:1880/ui
 
-![IQRF Dashboard](https://github.com/iqrfsdk/iot-starter-kit/blob/master/apps/nodered/ui/ui.png "IQRF Dashboard")
+![IQRF Dashboard](https://github.com/iqrfsdk/iqrf-daemon-examples/blob/master/node-red/ui/ui.png "IQRF Dashboard")
 
 ### Feedback
 
