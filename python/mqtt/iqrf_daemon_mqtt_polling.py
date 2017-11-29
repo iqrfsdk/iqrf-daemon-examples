@@ -7,8 +7,8 @@
 
 # #############################################################################
 #                                                                             #
-# sudo apt-get install python-dev python-pip build-essential                  #
-# sudo pip install paho-mqtt                                                  #
+# sudo apt-get install python3-dev python3-pip build-essential                #
+# sudo pip3 install paho-mqtt                                                 #
 #                                                                             #
 # #############################################################################
 
@@ -83,16 +83,32 @@ def create_dpa_json(msg_id, dpa_frame):
     return json.dumps(request)
 
 
+def create_dpa_json_with_timeout(msg_id, dpa_frame, timeout):
+    request = {}
+    request['ctype'] = 'dpa'
+    request['type'] = 'raw'
+    request['msgid'] = msg_id
+    request['timeout'] = timeout
+    request['request'] = dpa_frame
+    request['request_ts'] = ''
+    request['confirmation'] = ''
+    request['confirmation_ts'] = ''
+    request['response'] = ''
+    request['response_ts'] = ''
+
+    return json.dumps(request)
+
+
 def main():
     # peripheral DPA
     pnum_ledr = 0x06
     pcmd_pulse = 0x03
     hwpid = 0xffff
-    
+
     # default DPA timeout (in miliseconds)
     timeout = 1000
     args = ARGS.parse_args()
-    
+
     # MQTT
     host = args.mqtt_host
     port = args.mqtt_port
@@ -108,7 +124,7 @@ def main():
     receive_flag = False
     response_err = 0
     response_ok = 0
-    
+
     if debug:
         print("MQTT host: " + host + ":" + str(port))
         if username is not None and password is not None:
@@ -148,7 +164,7 @@ def main():
     node_address = 0
 
     while True:
-        
+
         # timestamp as id
         msg_id = str(time.time())
 
@@ -163,7 +179,11 @@ def main():
         dpa_frame = create_dpa_frame(node_address, pnum_ledr, pcmd_pulse, hwpid)
 
         # json packet
-        json_dpa = create_dpa_json(msg_id, dpa_frame)
+        #json_dpa = create_dpa_json(msg_id, dpa_frame)
+
+        # for lp network
+        timeout = 400 + (node_address * 200)
+        json_dpa = create_dpa_json_with_timeout(msg_id, dpa_frame, timeout)
 
         # publish
         (rc, mid) = client.publish(topic_pub, json_dpa, qos=1)
@@ -172,13 +192,15 @@ def main():
         counter = 0
         while receive_flag == False:
             # pause 1/1000 second
-            time.sleep(.001) 
+            time.sleep(.001)
             counter += 1
-
-        print('Waited for message reception to occur: %d ms' %(counter))
+        
+        print('Custom timeout: %d ms' %(timeout))
+        print('Waited for mqtt message reception to occur: %d ms' %(counter))
         print('Number of responses received correctly: %d' %(response_ok))
         print('Number of responses failed: %d' %(response_err))
-        
+
+        time.sleep(5)
         receive_flag = False
 
 if __name__ == "__main__":
